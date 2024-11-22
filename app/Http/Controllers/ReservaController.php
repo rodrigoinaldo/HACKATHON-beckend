@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\ConferirAgendamento;
+use App\Mail\ReservaAlteradaMail;
 use App\Models\Reserva;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ReservaController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      */
@@ -30,6 +35,7 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
+
         $request->validate([
             'ambiente_id' => 'required|exists:ambientes,id',
             'user_id' => 'required|exists:users,id',
@@ -39,9 +45,23 @@ class ReservaController extends Controller
             'status' => 'required|in:ativo,cancelado',
         ]);
 
+
         $reserva = Reserva::create($request->all());
 
         $reserva->load('ambiente', 'user');
+
+        // $detalhes = [
+        //     'ambiente' => $reserva->ambiente->nome,
+        //     'usuario' => $reserva->usuario->name,
+        //     'data' => $reserva->data_reserva,
+        //     'hora_inicio' => $reserva->hora_inicio,
+        //     'hora_fim' => $reserva->hora_fim,
+        //     'status' => $reserva->status,
+        // ];
+
+        // Mail::to($reserva->usuario->email)->send(new ReservaAlteradaMail($detalhes));
+
+        // return response()->json(['message' => 'Reserva criada com sucesso.', 'reserva' => $reserva]);
 
         return response()->json([
             'message' => 'Reserva criada com sucesso.',
