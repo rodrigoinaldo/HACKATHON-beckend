@@ -51,7 +51,7 @@ class AmbienteController extends Controller
      */
     public function show(Ambiente $ambiente)
     {
-        //
+        return response()->json($ambiente);
     }
 
     /**
@@ -65,18 +65,43 @@ class AmbienteController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Ambiente $ambiente)
+    public function update(Request $request, $id)
     {
+
+        // Validação dos dados recebidos
         $request->validate([
-            'nome' => 'required|string|max:255',
-            'tipo' => 'required|string|max:255',
+            'nome' => 'required',
+            'tipo' => 'required',
             'status' => 'required|in:reservado,disponivel,manutencao',
-            'descricao' => 'required|string|max:1000',
+            'descricao' => 'required',
         ]);
 
-        $request->update($request->all());
 
-        return response()->json($request, 200);
+        // Encontrar o ambiente pelo ID
+        $ambiente = Ambiente::find($id);
+
+
+        if (!$ambiente) {
+            return response()->json([
+                'message' => 'Ambiente não encontrado.',
+            ], 404);
+        }
+
+
+        // Atualizar os campos
+        $ambiente->update([
+            'nome' => $request->input('nome'),
+            'tipo' => $request->input('tipo'), // Atualizando o campo `tipo`
+            'descricao' => $request->input('descricao'),
+            'status' => $request->input('status'),
+        ]);
+
+        
+        // Retornar resposta
+        return response()->json([
+            'message' => 'Ambiente atualizado com sucesso.',
+            'ambiente' => $ambiente,
+        ]);
     }
 
     /**

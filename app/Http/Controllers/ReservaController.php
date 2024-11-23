@@ -18,8 +18,26 @@ class ReservaController extends Controller
      */
     public function index()
     {
-        $reservas = Reserva::all();
-        return response()->json($reservas);
+        $reservas = Reserva::with(['ambiente', 'user'])
+            ->orderBy('data_reserva', 'asc')
+            ->get();
+
+        $formattedReservas = $reservas->map(function ($reserva) {
+            return [
+                'id' => $reserva->id,
+                'data_reserva' => $reserva->data_reserva,
+                'hora_inicio' => $reserva->hora_inicio,
+                'hora_fim' => $reserva->hora_fim,
+                'status' => $reserva->status,
+                'ambiente' => $reserva->ambiente->nome ?? 'Ambiente não especificado',
+                'usuario' => $reserva->user->name ?? 'Usuário desconhecido',
+                'usuario_id' => $reserva->user_id
+            ];
+        });
+
+        return response()->json([
+            'reservas' => $formattedReservas,
+        ]);
     }
 
     /**
@@ -48,7 +66,7 @@ class ReservaController extends Controller
 
         $reserva = Reserva::create($request->all());
 
-        $reserva->load('ambiente', 'user');
+        // $reserva->load('ambiente', 'user');
 
         // $detalhes = [
         //     'ambiente' => $reserva->ambiente->nome,
@@ -61,20 +79,20 @@ class ReservaController extends Controller
 
         // Mail::to($reserva->usuario->email)->send(new ReservaAlteradaMail($detalhes));
 
-        // return response()->json(['message' => 'Reserva criada com sucesso.', 'reserva' => $reserva]);
+        return response()->json(['message' => 'Reserva criada com sucesso.', 'reserva' => $reserva]);
 
-        return response()->json([
-            'message' => 'Reserva criada com sucesso.',
-            'reserva' => [
-                'id' => $reserva->id,
-                'data_reserva' => $reserva->data_reserva,
-                'hora_inicio' => $reserva->hora_inicio,
-                'hora_fim' => $reserva->hora_fim,
-                'status' => $reserva->status,
-                'ambiente' => $reserva->ambiente->nome, // Nome do ambiente
-                'usuario' => $reserva->user->name, // Nome do usuário
-            ]
-        ], 201);
+        // return response()->json([
+        //     'message' => 'Reserva criada com sucesso.',
+        //     'reserva' => [
+        //         'id' => $reserva->id,
+        //         'data_reserva' => $reserva->data_reserva,
+        //         'hora_inicio' => $reserva->hora_inicio,
+        //         'hora_fim' => $reserva->hora_fim,
+        //         'status' => $reserva->status,
+        //         'ambiente' => $reserva->ambiente->nome, // Nome do ambiente
+        //         'usuario' => $reserva->user->name, // Nome do usuário
+        //     ]
+        // ], 201);
     }
 
     /**

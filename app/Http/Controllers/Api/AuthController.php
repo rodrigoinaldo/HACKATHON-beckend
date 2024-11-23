@@ -47,7 +47,7 @@ class AuthController extends Controller
     public function  login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|     ',
             'password' => 'required'
         ]);
 
@@ -63,7 +63,7 @@ class AuthController extends Controller
             'message' => 'Usuário logado com sucesso.',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => $user->id,
             'role' => $user->role
         ], 200);
     }

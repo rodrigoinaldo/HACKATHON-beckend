@@ -15,24 +15,13 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-Route::post('/reserva/store', [ReservaController::class, 'store']);
+Route::post('/ambiente/store', [AmbienteController::class, 'store']);
+Route::get('/ambiente/index', [AmbienteController::class, 'index']);
+Route::delete('/ambiente/{ambiente}/delete', [AmbienteController::class, 'destroy']);
+Route::put('/ambiente/{ambiente}/update', [AmbienteController::class, 'update']);
+Route::get('/ambiente/{ambiente}', [AmbienteController::class, 'show']);
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::name('admin')->prefix('admin')->middleware(['role:admin'])->group(function () {
-        Route::post('/ambiente/store', [AmbienteController::class, 'store']);
-        Route::get('/ambiente/index', [AmbienteController::class, 'index']);
-        Route::delete('/ambiente/{ambiente}/delete', [AmbienteController::class, 'destroy']);
-
-        Route::get('/reserva/index', [ReservaController::class, 'index']);
-        Route::delete('/reserva/{reserva}/delete', [ReservaController::class, 'destroy']);
-        Route::put('/reserva/{reserva}/update', [ReservaController::class, 'update']);
-    });
-
-    Route::name('professor')->prefix('professor')->middleware(['role:professor'])->group(function () {
-
-        Route::post('/reserva/store', [ReservaController::class, 'store'])->middleware(ConferirAgendamento::class);
-        Route::get('/reserva/index', [ReservaController::class, 'index']);
-        Route::delete('/reserva/{reserva}/delete', [ReservaController::class, 'destroy']);
-        Route::put('/reserva/{reserva}/update', [ReservaController::class, 'update']);
-    });
-});
+Route::post('/reserva/store', [ReservaController::class, 'store'])->middleware(ConferirAgendamento::class);
+Route::get('/reserva/index', [ReservaController::class, 'index']);
+Route::delete('/reserva/{reserva}/delete', [ReservaController::class, 'destroy']);
+Route::put('/reserva/{reserva}/update', [ReservaController::class, 'update']);;
