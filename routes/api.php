@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AmbienteController;
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Middleware\ConferirAgendamento;
+use App\Models\Notificacao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,3 +27,7 @@ Route::post('/reserva/store', [ReservaController::class, 'store'])->middleware(C
 Route::get('/reserva/index', [ReservaController::class, 'index']);
 Route::delete('/reserva/{reserva}/delete', [ReservaController::class, 'destroy']);
 Route::put('/reserva/{reserva}/update', [ReservaController::class, 'update']);;
+Route::get('/reserva/{reserva}', [ReservaController::class, 'show']);
+
+
+Route::get('/notificacao/{id}', [NotificacaoController::class, 'listarNotificacoes']);

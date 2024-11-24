@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\ConferirAgendamento;
 use App\Mail\ReservaAlteradaMail;
+use App\Models\Notificacao;
 use App\Models\Reserva;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Mockery\Matcher\Not;
 
 class ReservaController extends Controller
 {
@@ -63,36 +65,20 @@ class ReservaController extends Controller
             'status' => 'required|in:ativo,cancelado',
         ]);
 
+        // dd($request->all());
 
         $reserva = Reserva::create($request->all());
 
-        // $reserva->load('ambiente', 'user');
+        Notificacao::create([
+            'usuario_id' => $request->user_id,  // Corrigido para 'usuario_id'
+            'reservas_id' => $request->ambiente_id,
+            'mensagem' => "Sua reserva para o ambiente {$request->ambiente_id} foi criada.",
+            'tipo' => 'reserva',
+            'criado_em' => now()
+        ]);
 
-        // $detalhes = [
-        //     'ambiente' => $reserva->ambiente->nome,
-        //     'usuario' => $reserva->usuario->name,
-        //     'data' => $reserva->data_reserva,
-        //     'hora_inicio' => $reserva->hora_inicio,
-        //     'hora_fim' => $reserva->hora_fim,
-        //     'status' => $reserva->status,
-        // ];
-
-        // Mail::to($reserva->usuario->email)->send(new ReservaAlteradaMail($detalhes));
-
-        return response()->json(['message' => 'Reserva criada com sucesso.', 'reserva' => $reserva]);
-
-        // return response()->json([
-        //     'message' => 'Reserva criada com sucesso.',
-        //     'reserva' => [
-        //         'id' => $reserva->id,
-        //         'data_reserva' => $reserva->data_reserva,
-        //         'hora_inicio' => $reserva->hora_inicio,
-        //         'hora_fim' => $reserva->hora_fim,
-        //         'status' => $reserva->status,
-        //         'ambiente' => $reserva->ambiente->nome, // Nome do ambiente
-        //         'usuario' => $reserva->user->name, // Nome do usuário
-        //     ]
-        // ], 201);
+        //$reserva->load('ambiente', 'user');
+        return response()->json(['message' => 'Reserva criada com sucesso.', 'reserva' => $reserva], 201);
     }
 
     /**
@@ -100,7 +86,19 @@ class ReservaController extends Controller
      */
     public function show(Reserva $reserva)
     {
-        //
+        // Carregar a relação do usuário
+        $reserva->load('user', 'ambiente'); // Certifique-se de que as relações existem no modelo Reserva
+
+        // Formatar a resposta
+        return response()->json([
+            'id' => $reserva->id,
+            'data_reserva' => $reserva->data_reserva,
+            'hora_inicio' => $reserva->hora_inicio,
+            'hora_fim' => $reserva->hora_fim,
+            'status' => $reserva->status,
+            'usuario' => $reserva->user->name ?? 'Usuário desconhecido',
+            'ambiente' => $reserva->ambiente->nome ?? 'Ambiente não especificado',
+        ]);
     }
 
     /**
@@ -116,28 +114,32 @@ class ReservaController extends Controller
      */
     public function update(Request $request, Reserva $reserva)
     {
-        $request->validate([
-            'ambiente_id' => 'required|exists:ambientes,id',
-            'user_id' => 'required|exists:users,id',
-            'data_reserva' => 'required|date',
-            'hora_inicio' => 'required|date_format:H:i',
-            'hora_fim' => 'required|date_format:H:i',
-            'status' => 'required|in:ativo,cancelado',
+
+        // Validação dos dados de entrada
+        // $request->validate([
+        //     'ambiente_id' => 'required',
+        //     'user_id' => 'required',
+        //     'data_reserva' => 'required|date',
+        //     'hora_inicio' => 'required|date_format:H:i',
+        //     'hora_fim' => 'required|date_format:H:i',
+        //     'status' => 'required|in:ativo,cancelado',
+        // ]);
+
+
+        // Atualiza a reserva com os novos dados
+        $reserva->update([
+            'ambiente_id' => $request->input('ambiente_id'),
+            'user_id' => $request->input('user_id'),
+            'data_reserva' => $request->input('data_reserva'),
+            'hora_inicio' => $request->input('hora_inicio'),
+            'hora_fim' => $request->input('hora_fim'),
+            'status' => $request->input('status'),
         ]);
 
-        $reserva->update($request->all());
-
+        // Resposta com os dados da reserva atualizada
         return response()->json([
             'message' => 'Reserva atualizada com sucesso.',
-            'reserva' => [
-                'id' => $reserva->id,
-                'data_reserva' => $reserva->data_reserva,
-                'hora_inicio' => $reserva->hora_inicio,
-                'hora_fim' => $reserva->hora_fim,
-                'status' => $reserva->status,
-                'ambiente' => $reserva->ambiente->nome, // Nome do ambiente
-                'usuario' => $reserva->user->name, // Nome do usuário
-            ]
+            'reserva' => $reserva,
         ], 200);
     }
 
@@ -147,6 +149,13 @@ class ReservaController extends Controller
     public function destroy(Reserva $reserva)
     {
         $reserva->delete();
+
+        Notificacao::created([
+            'users_id' => $reserva->user_id,
+            'mensagem' => "Sua reserva para o ambiente {$reserva->ambiente_id} foi cancelada.",
+            'tipo' => 'cancelamento',
+            'criado_em' => now()
+        ]);
 
         return response()->json(['message' => 'Reserva deletada com sucesso'], 204);
     }
