@@ -123,30 +123,35 @@ class ReservaController extends Controller
      */
     public function update(Request $request, Reserva $reserva)
     {
+        // Validação dos dados de entrada
+        $validatedData = $request->validate([
+            'ambiente_id' => 'required',
+            'user_id' => 'required',
+            'data_reserva' => 'required|date',
+            'hora_inicio' => 'required|date_format:H:i:s',
+            'hora_fim' => 'required|date_format:H:i:s',
+            'status' => 'required|in:ativo,cancelado',
+        ]);
+
+        // Criação da notificação
         Notificacao::create([
-            'usuario_id' => $request->user_id,
-            'reservas_id' => $request->ambiente_id,
-            'mensagem' => "Sua reserva para o ambiente {$request->ambiente_id} foi alterada.",
+            'usuario_id' => $validatedData['user_id'],
+            'reservas_id' => $validatedData['ambiente_id'],
+            'mensagem' => "Sua reserva para o ambiente {$validatedData['ambiente_id']} foi alterada.",
             'tipo' => 'lembrete',
             'criado_em' => now()
         ]);
 
+        // Registro no histórico
         Historico::create([
-            'usuario_id' => $request->user_id,
+            'usuario_id' => $validatedData['user_id'],
             'reserva_id' => $reserva->id,
-            'alteracoes' => "Reserva criada para o ambiente {$request->ambiente_id}.",
+            'alteracoes' => "Reserva criada para o ambiente {$validatedData['ambiente_id']}.",
             'modificado_em' => now(),
         ]);
 
         // Atualiza a reserva com os novos dados
-        $reserva->update([
-            'ambiente_id' => $request->input('ambiente_id'),
-            'user_id' => $request->input('user_id'),
-            'data_reserva' => $request->input('data_reserva'),
-            'hora_inicio' => $request->input('hora_inicio'),
-            'hora_fim' => $request->input('hora_fim'),
-            'status' => $request->input('status'),
-        ]);
+        $reserva->update($validatedData);
 
         // Resposta com os dados da reserva atualizada
         return response()->json([
@@ -154,6 +159,7 @@ class ReservaController extends Controller
             'reserva' => $reserva,
         ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.

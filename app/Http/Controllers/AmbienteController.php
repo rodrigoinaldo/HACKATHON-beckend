@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ambiente;
+use App\Models\Historico;
+use App\Models\Notificacao;
 use Illuminate\Http\Request;
 
 class AmbienteController extends Controller
@@ -75,7 +77,6 @@ class AmbienteController extends Controller
             'status' => 'required|in:reservado,disponivel,manutencao',
             'descricao' => 'required',
         ]);
-
 
         // Encontrar o ambiente pelo ID
         $ambiente = Ambiente::find($id);

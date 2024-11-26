@@ -5,6 +5,7 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\HistoricoController;
 use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\ReservaController;
+use App\Http\Controllers\UserController;
 use App\Http\Middleware\ConferirAgendamento;
 use App\Models\Historico;
 use App\Models\Notificacao;
@@ -18,6 +19,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+Route::get('/user/index', [UserController::class, 'index']);
+Route::delete('/user/{user}/delete', [UserController::class, 'destroy']);
+Route::put('/user/{user}/update', [UserController::class, 'update']);
+Route::get('/user/{user}', [UserController::class, 'show']);
 
 Route::post('/ambiente/store', [AmbienteController::class, 'store']);
 Route::get('/ambiente/index', [AmbienteController::class, 'index']);
